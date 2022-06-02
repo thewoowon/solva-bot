@@ -46,7 +46,8 @@ namespace SolvaBot
             // 봇이 사용할 예정인 다이얼로그(문답) -> 메인 스테이지 
             services.AddSingleton<MainDialog>();
 
-            // 일시적인 봇을 생성합니다.  ASP 컨트롤러가 Bot 인터페이스를 예상할 때
+            // 일시적인 봇을 생성합니다.  ASP 컨트롤러가 Bot 인터페이스를 형성할 때
+            // Transient -> 과도현상 -> 본론으로 넘어가기 전에 나타나는 현상을 말합니다.
             services.AddTransient<IBot, RichCardsBot>();
         }
 

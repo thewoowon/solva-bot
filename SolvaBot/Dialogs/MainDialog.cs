@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
@@ -9,57 +6,124 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Choices;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
+using SolvaBot.Models;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Components;
+using System.Linq;
 
 namespace SolvaBot
 {
     public class MainDialog : ComponentDialog
     {
         protected readonly ILogger _logger;
+        SOLVABOTContext _context;
+        private string categoryCode = string.Empty;
+        private string menuCode = string.Empty;
+        private string detailCode = string.Empty;
+        private string _companyCode = "AAAAA1";
+
+        public SOLVABOTContext Context
+        {
+            get { return _context; }
+        }
 
         public MainDialog(ILogger<MainDialog> logger)
             : base(nameof(MainDialog))
         {
             _logger = logger;
 
-            // Define the main dialog and its related components.
             AddDialog(new ChoicePrompt(nameof(ChoicePrompt)));
             AddDialog(new WaterfallDialog(nameof(WaterfallDialog), new WaterfallStep[]
             {
-                ChoiceCardStepAsync,
-                ShowCardStepAsync,
-                //ChoiceCommonCardStepAsync,
-                ShowCommonCardStepAsync,
+                ShowMainCardAsync,
+                ShowFirstWaterfallCardAsync,
+                ShowSecondWaterfallCardAsync,
+                ShowDetailAndSaveMenuAsync,
             }));
 
-            // The initial child Dialog to run.
             InitialDialogId = nameof(WaterfallDialog);
+            _context = new SOLVABOTContext();
         }
 
-        // 1. Prompts the user if the user is not in the middle of a dialog.
-        // 2. Re-prompts the user when an invalid input is received.
-        private async Task<DialogTurnResult> ChoiceCardStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        private async Task<DialogTurnResult> ShowMainCardAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             _logger.LogInformation("MainDialog.ChoiceCardStepAsync");
 
-            // Create the PromptOptions which contain the prompt and re-prompt messages.
-            // PromptOptions also contains the list of choices available to the user.
             var options = new PromptOptions()
-            {
+            {  
                 Prompt = MessageFactory.Text("쉽고 빠른 시작을 위해서 메뉴를 선택해 주세요."),
                 RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
-                Choices = GetChoices(),
-                Style = ListStyle.HeroCard,
+                Choices = GetMainChoice(),
             };
 
-            // Prompt the user with the configured PromptOptions.
             return await stepContext.PromptAsync(nameof(ChoicePrompt), options, cancellationToken);
+        }
+
+        private async Task<DialogTurnResult> ShowFirstWaterfallCardAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("MainDialog.ChoiceCardStepAsync");
+            categoryCode = string.Empty;
+            menuCode = string.Empty;
+            detailCode = string.Empty;
+
+            var attachments = new List<Attachment>();
+
+            var reply = MessageFactory.Attachment(attachments);
+
+            switch (((FoundChoice)stepContext.Result).Value)
+            {
+                case "카테고리선택":
+                    var options1 = new PromptOptions()
+                    {
+                        Prompt = MessageFactory.Text("쉽고 빠른 시작을 위해서 메뉴를 선택해 주세요."),
+                        RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
+                        Choices = GetChoices(),
+                        Style = ListStyle.HeroCard,
+                    };
+                    return await stepContext.PromptAsync(nameof(ChoicePrompt), options1, cancellationToken);
+                case "담당자채팅":
+                    var options2 = new PromptOptions()
+                    {
+                        Prompt = MessageFactory.Text("쉽고 빠른 시작을 위해서 메뉴를 선택해 주세요."),
+                        RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
+                        Choices = GetChoices(),
+                        Style = ListStyle.HeroCard,
+                    };
+                    return await stepContext.PromptAsync(nameof(ChoicePrompt), options2, cancellationToken);
+                case "Q&A":
+                    var options3 = new PromptOptions()
+                    {
+                        Prompt = MessageFactory.Text("쉽고 빠른 시작을 위해서 메뉴를 선택해 주세요."),
+                        RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
+                        Choices = GetChoices(),
+                        Style = ListStyle.HeroCard,
+                    };
+                    return await stepContext.PromptAsync(nameof(ChoicePrompt), options3, cancellationToken);
+                case "홈페이지":
+                    var options4 = new PromptOptions()
+                    {
+                        Prompt = MessageFactory.Text("쉽고 빠른 시작을 위해서 메뉴를 선택해 주세요."),
+                        RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
+                        Choices = GetChoices(),
+                        Style = ListStyle.HeroCard,
+                    };
+                    return await stepContext.PromptAsync(nameof(ChoicePrompt), options4, cancellationToken);
+                default:
+                    var options5 = new PromptOptions()
+                    {
+                        Prompt = MessageFactory.Text("쉽고 빠른 시작을 위해서 메뉴를 선택해 주세요."),
+                        RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
+                        Choices = GetChoices(),
+                        Style = ListStyle.HeroCard,
+                    };
+                    return await stepContext.PromptAsync(nameof(ChoicePrompt), options5, cancellationToken);
+
+            }
         }
         private async Task<DialogTurnResult> ChoiceCommonCardStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             _logger.LogInformation("MainDialog.ChoiceCommonCardStepAsync");
 
-            // Create the PromptOptions which contain the prompt and re-prompt messages.
-            // PromptOptions also contains the list of choices available to the user.
             var options = new PromptOptions()
             {
                 Prompt = MessageFactory.Text("해당 메뉴의 선택사항입니다."),
@@ -68,150 +132,151 @@ namespace SolvaBot
                 Style = ListStyle.HeroCard,
             };
 
-            // Prompt the user with the configured PromptOptions.
             return await stepContext.PromptAsync(nameof(ChoicePrompt), options, cancellationToken);
         }
 
-        // Send a Rich Card response to the user based on their choice.
-        // This method is only called when a valid prompt response is parsed from the user's response to the ChoicePrompt.
-        private async Task<DialogTurnResult> ShowCardStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        private async Task<DialogTurnResult> ShowSecondWaterfallCardAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
+            FoundChoice foundChoice = (FoundChoice)stepContext.Result;
+
             _logger.LogInformation("MainDialog.ShowCardStepAsync");
-            
-            // Cards are sent as Attachments in the Bot Framework.
-            // So we need to create a list of attachments for the reply activity.
+
+            TblComCategory[] category;
+
+            category = (from e in Context.TblComCategory
+                        where e.CompanyCode == _companyCode
+                        select e).ToArray();
+
+            categoryCode = category[foundChoice.Index].Code;
             var attachments = new List<Attachment>();
-            
-            // Reply to the activity we received with an activity.
             var reply = MessageFactory.Attachment(attachments);
-            
-            // Decide which type of card(s) we are going to show the user
-            switch (((FoundChoice)stepContext.Result).Value)
+
+            TblComMenu[] menu;
+
+            menu = (from e in Context.TblComMenu
+                        where e.CategoryCode == categoryCode
+                    select e).ToArray();
+
+            var cardOptions = new List<Choice>();
+
+            foreach (var c in menu)
             {
-
-                case "품질분석":
-                    // Display an Adaptive Card
-                    reply.Attachments.Add(Cards.GetQualityCard().ToAttachment());
-                    break;
-                case "고객불만":
-                    // Display an AnimationCard.
-                    reply.Attachments.Add(Cards.GetComplaintCard().ToAttachment());
-                    break;
-                case "검사관리":
-                    // Display an AudioCard
-                    reply.Attachments.Add(Cards.GetInspectionCard().ToAttachment());
-                    break;
-                case "부적합관리":
-                    // Display a HeroCard.
-                    reply.Attachments.Add(Cards.GetNonconformingCard().ToAttachment());
-                    break;
-                case "심사관리":
-                    // Display an OAuthCard
-                    reply.Attachments.Add(Cards.GetJudgeCard().ToAttachment());
-                    break;
-                case "변경관리":
-                    // Display a ReceiptCard.
-                    reply.Attachments.Add(Cards.GetChangeCard().ToAttachment());
-                    break;
-                case "시험의뢰":
-                    // Display a SignInCard.
-                    reply.Attachments.Add(Cards.GetTestCard().ToAttachment());
-                    break;
-                case "표준관리":
-                    // Display a ThumbnailCard.
-                    reply.Attachments.Add(Cards.GetStandardCard().ToAttachment());
-                    break;
-                case "개선과제":
-                    // Display a VideoCard
-                    reply.Attachments.Add(Cards.GetImprovementCard().ToAttachment());
-                    break;
-                case "QCOST":
-                    reply.Attachments.Add(Cards.GetQcostCard().ToAttachment());
-                    break;
-            }
-
-            // 여기서 카드를 보여주는 곳입니다.
-            await stepContext.Context.SendActivityAsync(reply, cancellationToken);
-            // 공통적인 사항에 대한 히어로 카드를 제시하는 곳
-
+                cardOptions.Add(new Choice() { Value = c.Title, Synonyms = new List<string>() { c.Code } });
+            };
 
             var options = new PromptOptions()
             {
                 Prompt = MessageFactory.Text("해당 메뉴의 선택사항입니다."),
                 RetryPrompt = MessageFactory.Text("죄송하지만 해당 서비스가 존재하지 않습니다. 카드를 선택하시거나 단어를 입력해주세요."),
-                Choices = GetCommonChoices(),
+                Choices = cardOptions,
                 Style = ListStyle.HeroCard,
             };
 
-            // Prompt the user with the configured PromptOptions.
             return await stepContext.PromptAsync(nameof(ChoicePrompt), options, cancellationToken);
         }
 
-        private async Task<DialogTurnResult> ShowCommonCardStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        private async Task<DialogTurnResult> ShowDetailAndSaveMenuAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
+            FoundChoice foundChoice = (FoundChoice)stepContext.Result;
+
             _logger.LogInformation("MainDialog.ShowCommonCardStepAsync");
 
-            // Cards are sent as Attachments in the Bot Framework.
-            // So we need to create a list of attachments for the reply activity.
-            var attachments = new List<Attachment>();
+            TblComMenu[] menu;
 
-            // Reply to the activity we received with an activity.
+            menu = (from e in Context.TblComMenu
+                    where e.CategoryCode == categoryCode
+                    select e).ToArray();
+
+            menuCode = menu[foundChoice.Index].Code;
+            var attachments = new List<Attachment>();
             var reply = MessageFactory.Attachment(attachments);
 
-            // Decide which type of card(s) we are going to show the user
-            switch (((FoundChoice)stepContext.Result).Value)
+            TblComMenuDetail[] detail;
+
+            detail = (from e in Context.TblComMenuDetail
+                      where e.MenuCode == menuCode
+                      select e).ToArray();
+
+
+            TblComAddfiles[] detailImage = new TblComAddfiles[1];
+            TblComAddfiles[] detailDocu = new TblComAddfiles[1];
+
+
+            if (detail != null && detail.Length > 0)
             {
+                detailImage = (from e in Context.TblComAddfiles
+                               where e.Pcode == detail[0].Code && e.Role == 1
+                               select e).ToArray();
 
-                case "결재 과정 알아보기":
-                    // Display an Adaptive Card
-                    reply.Attachments.Add(CommonCards.GetApprovalCard().ToAttachment());
-                    break;
-                case "등록 과정 알아보기":
-                    // Display an AnimationCard.
-                    reply.Attachments.Add(CommonCards.GetRegisterCard().ToAttachment());
-                    break;
-                case "개정 등록 알아보기":
-                    // Display an AudioCard
-                    reply.Attachments.Add(CommonCards.GetReviseCard().ToAttachment());
-                    break;
-                case "담당자 알아보기":
-                    // Display a HeroCard.
-                    reply.Attachments.Add(CommonCards.GetManagerCard().ToAttachment());
-                    break;
-                case "담당자 채팅연결":
-                    // Display an OAuthCard
-                    reply.Attachments.Add(CommonCards.GetChatCard().ToAttachment());
-                    break;
-                case "오류 메일 보내기":
-                    // Display an OAuthCard
-                    reply.Attachments.Add(CommonCards.GetMailCard().ToAttachment());
-                    break;
-
+                detailDocu = (from e in Context.TblComAddfiles
+                              where e.Pcode == detail[0].Code && e.Role == 2
+                              select e).ToArray();
             }
 
-            // 여기서 카드를 보여주는 곳입니다.
-            await stepContext.Context.SendActivityAsync(reply, cancellationToken);
+            var cardOptions = new List<Choice>();
 
-            // Give the user instructions about what to do next
+            HeroCard heroCard = new HeroCard();
+            heroCard = Cards.GetHeroCard();
+
+            foreach (var c in detail)
+            {
+                heroCard.Title = c.Title;
+                heroCard.Text = c.Content;
+                heroCard.Subtitle = c.SubTitle;
+
+                if(detailImage.Length > 0)
+                {
+                    heroCard.Images = new List<CardImage> { new CardImage("https://solvabotmanager.solva.co.kr/" + _companyCode + "/Images/" + detailImage[0].Fn) };
+                }
+                else
+                {
+                    heroCard.Images = new List<CardImage> { new CardImage("https://solvabotmanager.solva.co.kr/BlackGround.png") };
+                }
+
+                if (detailDocu.Length > 0)
+                {
+                    heroCard.Buttons = new List<CardAction> { new CardAction(ActionTypes.OpenUrl, "파일 다운로드", value: "https://solvabotmanager.solva.co.kr/" + _companyCode + "/Docus/" + detailDocu[0].Fn) };
+                }
+                else
+                {
+                    heroCard.Buttons = new List<CardAction> { new CardAction(ActionTypes.OpenUrl, "파일 다운로드", value: "https://solvabotmanager.solva.co.kr/SolvaReference.png") };
+                }
+            };
+
+            reply.Attachments.Add(heroCard.ToAttachment());
+
+            await stepContext.Context.SendActivityAsync(reply, cancellationToken);
             await stepContext.Context.SendActivityAsync(MessageFactory.Text("다른 선택을 원하십니까?"), cancellationToken);
 
             return await stepContext.EndDialogAsync();
         }
 
+        private IList<Choice> GetMainChoice()
+        {
+
+            var cardOptions = new List<Choice>();
+
+            cardOptions.Add(new Choice() { Value = "카테고리선택", Synonyms = new List<string>() { "카테고리", "카테", "카테고리선택" } });
+            cardOptions.Add(new Choice() { Value = "담당자채팅", Synonyms = new List<string>() { "담당자채팅", "담당", "담당자", "채팅" } });
+            cardOptions.Add(new Choice() { Value = "Q&A", Synonyms = new List<string>() { "Q&A","QA","qa","qna" } });
+            cardOptions.Add(new Choice() { Value = "홈페이지", Synonyms = new List<string>() { "홈페이지", "홈" } });
+
+            return cardOptions;
+        }
+
         private IList<Choice> GetChoices()
         {
-            var cardOptions = new List<Choice>()
+            TblComCategory[] category;
+
+            category = (from e in Context.TblComCategory
+                        where e.CompanyCode == _companyCode
+                        select e).ToArray();
+
+            var cardOptions = new List<Choice>();
+
+            foreach (var c in category)
             {
-                new Choice() { Value = "품질분석", Synonyms = new List<string>() { "quality" } },
-                new Choice() { Value = "고객불만", Synonyms = new List<string>() { "complaint" } },
-                new Choice() { Value = "검사관리", Synonyms = new List<string>() { "inspection" } },
-                new Choice() { Value = "부적합관리", Synonyms = new List<string>() { "nonconforming" } },
-                new Choice() { Value = "심사관리", Synonyms = new List<string>() { "judge" } },
-                new Choice() { Value = "변경관리", Synonyms = new List<string>() { "change" } },
-                new Choice() { Value = "시험의뢰", Synonyms = new List<string>() { "test" } },
-                new Choice() { Value = "표준관리", Synonyms = new List<string>() { "standard" } },
-                new Choice() { Value = "개선과제", Synonyms = new List<string>() { "improvement" } },
-                new Choice() { Value = "QCOST", Synonyms = new List<string>() { "qcost" } },
+                cardOptions.Add(new Choice() { Value = c.Title, Synonyms = new List<string>() { c.Code } });
             };
 
             return cardOptions;
